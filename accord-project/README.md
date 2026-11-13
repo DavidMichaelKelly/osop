@@ -77,14 +77,12 @@ ROC, so the three methods can be compared on the same inputs.
 | OSOP step | OSOP code | Here |
 |---|---|---|
 | Download hindcast, forecast, ERA5 | `get_any_hindcast.py`, `get_era5.py` | `data.py`: `acmaddl.fetch` |
-| GRIB to pyCPT NetCDF | `pycpt_convert.py` (1,044 lines) | not needed |
-| Member-count terciles and MME | `compute_products_func.py`, `compare_terciles.py` | `products.py` (65 lines) |
+| GRIB to pyCPT NetCDF | `pycpt_convert.py` | not needed |
+| Member-count terciles and MME | `compute_products_func.py`, `compare_terciles.py` | `products.py` |
 | pyCPT CCA and MME | `run_pycpt.py`, pycpt, cptcore, CPT | `pipeline.py`: `africas2s.seasonal_mme` |
 | Scores | `compute_scores_func.py`, xskillscore | `pipeline.py`: `africas2s.skill` |
 | Plots | `plot_verify.py`, `ens_plotting.py` | `pipeline.py`: `africas2s.plot_matrix` |
 | Driver | `run_all.py`, subprocess per step | `pipeline.py`, `__main__.py`, one process |
-
-The package is about 700 lines against OSOP's 6,600.
 
 OSOP names a CDS system number per centre; acmadDL pins one system per catalog
 entry. `data.product_for` looks the pair up in the acmadDL catalog and stops
