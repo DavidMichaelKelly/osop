@@ -1,0 +1,23 @@
+{
+  "models": [
+    "ECMWF",
+    "UKMO"
+  ],
+  "predictor_extent": {
+    "west": 25.0,
+    "east": 60.0,
+    "south": -15.0,
+    "north": 20.0
+  },
+  "first_year": 1993,
+  "last_year": 2016,
+  "forecast_year": 2025,
+  "season": "OND",
+  "season_days": 92,
+  "source": "../configs/horn_c3s.yml",
+  "sources": {
+    "ecmwf": "acmadDL c3s/ecmwf-monthly",
+    "ukmo": "acmadDL c3s/ukmo",
+    "obs": "acmadDL obs/era5"
+  }
+}

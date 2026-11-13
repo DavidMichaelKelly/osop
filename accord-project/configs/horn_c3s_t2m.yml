@@ -1,0 +1,49 @@
+# Horn of Africa 2 m temperature, September start, October-December. Same
+# set-up as horn_c3s.yml with the variable changed; tests the temperature path.
+# ECMWF 51 and UKMO 610 from C3S, ERA5 as truth. Needs a CDS key.
+workflow:
+  hindcast: true
+  forecast: true
+
+parameters:
+  month: 9
+  leads: "2,3,4"
+  area: "15,33,-5,48"             # north, west, south, east
+  variable: "2m_temperature"
+  location: "None"
+  method: "pmesh"
+  pycpt: true                     # here: run the africas2s calibration
+  predictor_area: "20,25,-15,60"
+  forecast_year: 2026
+
+paths:
+  base: "./output/horn_c3s_t2m"
+  logdir: "{base}/logfiles"
+  hindcast:
+    downloads: "{base}/hindcast/downloads"
+    products: "{base}/hindcast/products"
+    scores: "{base}/hindcast/scores"
+    plots: "{base}/hindcast/plots"
+    pycpt: "{base}/hindcast/pycpt"
+  forecast:
+    downloads: "{base}/forecast/downloads"
+    products: "{base}/forecast/products"
+    scores: "{base}/forecast/scores"
+    plots: "{base}/forecast/plots"
+    pycpt: "{base}/forecast/pycpt"
+
+centres:
+  - ecmwf
+  - ukmo
+  - mme
+
+services:
+  ecmwf: [51, 1]
+  ukmo: [610, 1]
+  mme: [1, 0]
+
+# Read by osop_acmad only; OSOP ignores this section.
+rebuild:
+  backend: acmaddl
+  obs: obs/era5
+  obs_grid_res: 1.0

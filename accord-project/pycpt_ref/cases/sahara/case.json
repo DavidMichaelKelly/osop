@@ -1,0 +1,18 @@
+{
+  "models": [
+    "ECMWF",
+    "UKMO"
+  ],
+  "predictor_extent": {
+    "west": 10.0,
+    "east": 40.0,
+    "south": 10.0,
+    "north": 40.0
+  },
+  "first_year": 1993,
+  "last_year": 2016,
+  "forecast_year": 2025,
+  "season": "JJA",
+  "season_days": 92,
+  "source": "OSOP bundled test data (pycpt_convert.py output)"
+}

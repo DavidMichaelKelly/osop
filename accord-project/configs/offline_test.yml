@@ -1,0 +1,48 @@
+# Offline run on the GRIB files OSOP ships as test data: ECMWF system 51 and
+# UKMO system 604, May start, June-August, box 10-40N 10-40E, ERA5 as truth.
+# No network or CDS key needed. The top five sections are plain OSOP config.
+workflow:
+  hindcast: true
+  forecast: true
+
+parameters:
+  month: 5
+  leads: "2,3,4"
+  area: "40,10,10,40"            # north, west, south, east
+  variable: "total_precipitation"
+  location: "None"
+  method: "pmesh"
+  pycpt: true                     # here: run the africas2s calibration
+  predictor_area: "40,10,10,40"
+  forecast_year: 2025
+
+paths:
+  base: "./output/offline_test"
+  logdir: "{base}/logfiles"
+  hindcast:
+    downloads: "{base}/hindcast/downloads"
+    products: "{base}/hindcast/products"
+    scores: "{base}/hindcast/scores"
+    plots: "{base}/hindcast/plots"
+    pycpt: "{base}/hindcast/pycpt"
+  forecast:
+    downloads: "{base}/forecast/downloads"
+    products: "{base}/forecast/products"
+    scores: "{base}/forecast/scores"
+    plots: "{base}/forecast/plots"
+    pycpt: "{base}/forecast/pycpt"
+
+centres:
+  - ecmwf
+  - ukmo
+  - mme
+
+services:
+  ecmwf: [51, 1]
+  ukmo: [604, 1]
+  mme: [1, 0]
+
+# Read by osop_acmad only; OSOP ignores this section.
+rebuild:
+  backend: grib
+  grib_dir: "../../lib/osop/test/test_data/test_pycptf"

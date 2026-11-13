@@ -1,0 +1,5 @@
+cases/*/out/
+cases/*/africas2s_out/
+cases/*/inputs/
+*.log
+__pycache__/

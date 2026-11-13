@@ -1,0 +1,57 @@
+# Live run through acmadDL with products that need no credentials: three NMME
+# models and CMAP, September start, October-December, Horn of Africa.
+# Exercises the same fetch path the C3S centres use, without a CDS key.
+workflow:
+  hindcast: true
+  forecast: true
+
+parameters:
+  month: 9
+  leads: "2,3,4"
+  area: "15,33,-5,48"             # north, west, south, east
+  variable: "total_precipitation"
+  location: "None"
+  method: "pmesh"
+  pycpt: true
+  predictor_area: "15,33,-5,48"
+  forecast_year: 2024
+
+paths:
+  base: "./output/nmme_live_test"
+  logdir: "{base}/logfiles"
+  hindcast:
+    downloads: "{base}/hindcast/downloads"
+    products: "{base}/hindcast/products"
+    scores: "{base}/hindcast/scores"
+    plots: "{base}/hindcast/plots"
+    pycpt: "{base}/hindcast/pycpt"
+  forecast:
+    downloads: "{base}/forecast/downloads"
+    products: "{base}/forecast/products"
+    scores: "{base}/forecast/scores"
+    plots: "{base}/forecast/plots"
+    pycpt: "{base}/forecast/pycpt"
+
+centres:
+  - cfsv2
+  - geoss2s
+  - spear
+  - mme
+
+services:                         # [system id (unused for NMME), MME weight]
+  cfsv2: [0, 1]
+  geoss2s: [0, 1]
+  spear: [0, 1]
+  mme: [1, 0]
+
+rebuild:
+  backend: acmaddl
+  products:                       # centre -> acmadDL product, bypassing the C3S lookup
+    cfsv2: nmme/cfsv2
+    geoss2s: nmme/geoss2s
+    spear: nmme/spear
+  obs: obs/cmap                   # 2.5 degree; obs/chirps-v2-monthly also works but is slow
+  obs_grid_res: 1.0
+  model_grid_res: 1.0
+  cca_args:
+    mode_selection: north
