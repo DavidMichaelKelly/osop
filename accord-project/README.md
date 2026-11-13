@@ -1,15 +1,17 @@
 # osop_acmad: the OSOP workflow on acmadDL + africas2s
 
-An experiment: keep OSOP's YAML-driven workflow, replace its engine.
-acmadDL supplies the data, africas2s the statistics and maps. No pyCPT,
-cptcore, CPT Fortran binary or IRI conda channel.
+An experiment: a second way to run OSOP's YAML-driven workflow, alongside
+OSOP's own scripts. It reads the same config file, with acmadDL supplying the
+data and africas2s the statistics and maps, so this route needs no pyCPT,
+cptcore, CPT Fortran binary or IRI conda channel. Nothing in OSOP is changed
+or removed: this folder is self-contained and OSOP's pipeline runs as before.
 
 Status: working prototype. Runs OSOP's stock settings against live C3S data
 (with UKMO moved from system 604 to 610: see
 [Data-source caution](#data-source-caution)) and
 matches OSOP's own code for the uncalibrated product. The CCA reproduces real
-pyCPT to about 1% when given the same mode counts, but africas2s's automatic
-mode search does not pick the same counts as CPT: see
+pyCPT to about 1% when given the same mode counts, and africas2s's automatic
+mode search picks the same counts as CPT in the four models compared: see
 [Comparison with pyCPT](#comparison-with-pycpt). See [What is and is not verified](#what-is-and-is-not-verified).
 
 ## Run it
@@ -49,7 +51,7 @@ options below.
 For each centre and for the weighted multi-model ensemble it produces a
 forecast tercile map and a cross-validated hindcast for three methods:
 
-| Product | What it is | Replaces |
+| Product | What it is | OSOP equivalent |
 |---|---|---|
 | `member_count` | Members per hindcast tercile, uncalibrated | `compute_products_func.py`, `compare_terciles.py` |
 | `cca` | africas2s CCA with OSOP's pyCPT settings | `run_pycpt.py` + pyCPT + CPT |

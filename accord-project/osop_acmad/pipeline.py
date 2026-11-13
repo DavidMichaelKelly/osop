@@ -3,7 +3,7 @@
 Products, per centre and for the weighted multi-model ensemble (MME):
 
 * ``member_count``: OSOP's uncalibrated product (members per hindcast tercile).
-* ``cca``: africas2s CCA with OSOP's pyCPT settings. Replaces the pyCPT step.
+* ``cca``: africas2s CCA with OSOP's pyCPT settings. The counterpart of OSOP's pyCPT step.
 * ``ereg``: africas2s ensemble regression, for comparison.
 
 Every product has a forecast map and a cross-validated hindcast scored against
