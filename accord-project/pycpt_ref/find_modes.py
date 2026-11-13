@@ -1,4 +1,4 @@
-"""Infer the EOF truncations CPT selected, which pyCPT does not report.
+"""Infer the EOF truncations CPT selected from pyCPT's output.
 
   python find_modes.py <case>
 

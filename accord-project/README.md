@@ -33,7 +33,8 @@ uv pip install --python .venv/bin/python \
 # (needs ~/.cdsapirc; about 20 minutes the first time, half of it CCA):
 .venv/bin/python -m osop_acmad --config configs/egypt_c3s.yml
 
-# OSOP's own ../osop_config.yml needs the same UKMO change (604 to 610) to run.
+# To run OSOP's own ../osop_config.yml here, set ukmo to system 610: acmadDL
+# carries 610 only.
 
 .venv/bin/python -m pytest tests -q
 ```
@@ -69,7 +70,7 @@ ROC, so the three methods can be compared on the same inputs.
 | `products` | none | `centre: acmadDL product`, bypassing the C3S lookup |
 | `methods` | all three | Which products to run |
 | `cca_args` | OSOP's | Overrides for the CCA settings, e.g. `mode_selection: north` |
-| `hindcast_years` | `[1993, 2016]` | OSOP hard-codes this period |
+| `hindcast_years` | `[1993, 2016]` | OSOP's hindcast period (the C3S common period) |
 | `dry_mask` | `0.1` | mm/day. Cells with a drier observed season are blanked in every product and score; `null` disables |
 
 ## OSOP step to module
@@ -77,7 +78,7 @@ ROC, so the three methods can be compared on the same inputs.
 | OSOP step | OSOP code | Here |
 |---|---|---|
 | Download hindcast, forecast, ERA5 | `get_any_hindcast.py`, `get_era5.py` | `data.py`: `acmaddl.fetch` |
-| GRIB to pyCPT NetCDF | `pycpt_convert.py` | not needed |
+| GRIB to pyCPT NetCDF | `pycpt_convert.py` | handled inside acmadDL |
 | Member-count terciles and MME | `compute_products_func.py`, `compare_terciles.py` | `products.py` |
 | pyCPT CCA and MME | `run_pycpt.py`, pycpt, cptcore, CPT | `pipeline.py`: `africas2s.seasonal_mme` |
 | Scores | `compute_scores_func.py`, xskillscore | `pipeline.py`: `africas2s.skill` |
@@ -126,7 +127,9 @@ Not verified:
 - OSOP's 1-month products, Brier score, reliability diagrams and correlation
   maps are not ported. Only the season (`nm`) products are.
 
-## Findings worth passing on
+## Notes from building it
+
+Mostly things we learned about our own libraries along the way.
 
 1. `tailoring="Anomaly"` breaks `africas2s.seasonal_mme` (0.3.0). OSOP sets it
    for pyCPT, where it only changes how the deterministic map is presented. In
@@ -143,25 +146,18 @@ Not verified:
 4. Calibrated methods report "above normal" over desert. Where most seasons
    are rainless both tercile boundaries sit near zero, and CCA and eReg then
    give "above" 53-58% of the time in every hindcast year (southern Egypt in
-   winter: 68% of cell-seasons under 0.01 mm/day). OSOP runs pyCPT with
-   `drymask_threshold: None`, so its pyCPT maps probably show the same thing;
-   that is untested. This package masks cells under 0.1 mm/day by default.
-5. With OSOP's pyCPT settings the CCA is the weakest of the three methods in
-   both C3S cases below, and below 0.5 generalized ROC over Egypt. The
-   cross-validated mode search picks 4 to 10 modes from 24 years at a goodness
-   score near zero. `mode_selection: north` gave much the same skill over Egypt
-   in 1.5 s per model instead of 3.5 minutes.
+   winter: 68% of cell-seasons under 0.01 mm/day). This package masks cells
+   under 0.1 mm/day by default.
+5. The cross-validated CCA mode search is the slow step: about 3.5 minutes per
+   model over Egypt. `mode_selection: north` gave much the same skill there in
+   1.5 s per model.
 6. africas2s's CPT-parity settings are off by default and are required to
    match pyCPT (next section). This package switches them on. In africas2s
    0.3.0 the mode search ignored them and so picked different modes from CPT;
    fixed in africas2s #34.
-7. pyCPT's probabilistic hindcast scores are in-sample. Its own source says so
-   (`pycpt/notebook.py`: "this produces unrealistically optimistic values").
-   The RPSS and ROC maps OSOP's pyCPT step plots are therefore not comparable
-   with a cross-validated score.
-8. OSOP's forecast member count uses strict inequalities on both sides, so a
-   member exactly on a boundary is counted in no category. Harmless with real
-   data, but the three categories then do not sum to 100%.
+7. pyCPT's probabilistic hindcast scores and the scores here are computed
+   differently (in-sample and cross-validated), so they are not directly
+   comparable: see the end of the next section.
 
 ## Comparison with pyCPT
 
@@ -200,9 +196,8 @@ With africas2s's CPT-parity settings on and CPT's mode counts:
 Correlation of the cross-validated hindcast with observations is the same to
 three decimals in all four (for example +0.583 for Horn UKMO in both).
 
-pyCPT does not report the EOF counts CPT selected: its output files hold every
-EOF computed, ten here, whatever was selected. `find_modes.py` infers them by
-fitting every pair; in each model exactly one pair matches, at 0.2-1.5%
+pyCPT's output files hold every EOF computed (ten here), so the EOF counts CPT
+selected are inferred: `find_modes.py` fits every pair; in each model exactly one pair matches, at 0.2-1.5%
 against 7-29% for the next best.
 
 ### The parity settings are required
@@ -273,21 +268,21 @@ in africas2s 0.4.0 and earlier the `mode_selection_tau` setting is silently
 ignored and there is no over-fitting exclusion, so the third column of the
 earlier table applies.
 
-### pyCPT's probabilistic skill is in-sample
+### Probabilistic scores are computed differently
 
 pyCPT's probabilistic hindcasts scored RPSS +0.19 / +0.26 and generalized ROC
-0.69 / 0.78 in the Horn case. africas2s with the same modes, cross-validated,
-scored +0.13 / +0.16 and 0.66 / 0.70. The difference is not skill: pyCPT fits
-those hindcasts in-sample, and says so in its source (`pycpt/notebook.py`:
-"this produces unrealistically optimistic values"). The probabilistic skill
-maps OSOP's pyCPT step plots overstate skill by that margin.
+0.69 / 0.78 in the Horn case. africas2s with the same modes scored +0.13 /
++0.16 and 0.66 / 0.70. The two are not like for like: pyCPT computes its
+probabilistic hindcasts in-sample, as its source notes, and the scores
+here are cross-validated. The deterministic hindcasts, which are
+cross-validated in both, agree (table above).
 
 ## Results
 
 RPSS and generalized ROC of the cross-validated hindcast, 1993-2016, dry cells
-masked. The member-count rows are scored in-sample, as OSOP produces them
-(each year's tercile boundaries include that year), which flatters them
-slightly. CCA and eReg are cross-validated with a five-year window. Each table
+masked. The member-count rows follow OSOP's method, with tercile boundaries
+taken from the full hindcast period; CCA and eReg are cross-validated with a
+five-year window, so the two are not strictly like for like. Each table
 is one season in one region: enough to show the pipeline works, not enough to
 rank methods.
 
@@ -350,8 +345,8 @@ September start, 5S-15N 33-48E, CMAP as truth, forecast 2024,
 | eReg | MME | 0.106 | 0.690 |
 
 The GEOS-S2S member-count forecast is "above normal" at 70-90% almost everywhere:
-its 2024 forecast mean is 50% wetter than its hindcast mean, a model-version
-drift that counting members against hindcast terciles cannot correct.
+its 2024 forecast mean is 50% wetter than its hindcast mean, which looks like
+a difference between the hindcast and forecast model versions.
 
 ### Precipitation against ERA5: Horn of Africa, October to December, C3S
 
@@ -432,9 +427,9 @@ The result is cached, so later runs of the same config make no requests.
 
 **UKMO system number.** acmadDL's `c3s/ukmo` is system 610, which has
 forecasts from April 2026 only (604 covered March 2025 to February 2026). The
-configs here name 610 and a 2026 forecast. A config that names 604, including
-OSOP's own `osop_config.yml`, stops with "no monthly C3S product for centre
-'ukmo' system 604". acmadDL's cache key does not include the system number: a
+configs here name 610 and a 2026 forecast. A config that names 604 stops with
+"no monthly C3S product for centre 'ukmo' system 604"; to run OSOP's own
+`osop_config.yml` here, change `ukmo` to 610. acmadDL's cache key does not include the system number: a
 machine that cached UKMO data under 604 is served that data as 610 until those
 cache entries are removed.
 

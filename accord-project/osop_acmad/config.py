@@ -14,7 +14,7 @@ import yaml
 
 MONTH_INITIALS = "JFMAMJJASOND"
 VARIABLES = {"total_precipitation": "precip", "2m_temperature": "temp"}
-HINDCAST_YEARS = (1993, 2016)  # OSOP hard-codes the C3S common period.
+HINDCAST_YEARS = (1993, 2016)  # OSOP's hindcast period: the C3S common period.
 
 
 class ConfigError(Exception):

@@ -19,7 +19,8 @@ TERCILE = [0, 1, 2]
 def tercile_thresholds(hindcast: xr.DataArray) -> xr.DataArray:
     """Lower and upper tercile boundaries over all hindcast years and members.
 
-    In-sample, as in OSOP: the year being scored is part of its own climatology.
+    As in OSOP, the boundaries come from the full hindcast period, so the year
+    being scored is part of its own climatology.
     """
     q = hindcast.quantile([1 / 3.0, 2 / 3.0], dim=["year", "member"])
     return q.rename(quantile="bound").assign_coords(bound=["lower", "upper"])
@@ -43,8 +44,9 @@ def hindcast_probabilities(hindcast: xr.DataArray, thresholds: xr.DataArray) -> 
 def forecast_probabilities(forecast: xr.DataArray, thresholds: xr.DataArray) -> xr.DataArray:
     """Fraction of forecast members in each hindcast tercile: ``(tercile, lat, lon)``.
 
-    OSOP uses strict inequalities here, so a member exactly on a boundary is
-    counted in no category. That cannot happen with real float data.
+    Uses strict inequalities, as OSOP does, to match its output. A member exactly
+    on a boundary would be counted in no category; with real float data that
+    does not arise.
     """
     if "year" in forecast.dims:
         forecast = forecast.squeeze("year", drop=True)
